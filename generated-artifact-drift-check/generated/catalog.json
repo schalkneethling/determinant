@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "entries": [
+    {
+      "id": "alpha",
+      "label": "Alpha"
+    },
+    {
+      "id": "gamma",
+      "label": "Gamma"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+
+# Keep local and CI installs on the same virtual-store behavior.
+enableGlobalVirtualStore: false
+
+engineStrict: true
+strictPeerDependencies: true
+
+# Every dependency lifecycle script is denied unless reviewed here.
+allowBuilds:
+  esbuild: true

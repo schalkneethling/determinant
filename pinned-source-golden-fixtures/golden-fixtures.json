@@ -1,0 +1,46 @@
+{
+  "source": {
+    "file": "sample-source.json",
+    "version": "3.2.1"
+  },
+  "fragments": {
+    "features.widget.support": {
+      "demo": [
+        {
+          "version_added": "1",
+          "version_removed": "2"
+        },
+        {
+          "version_added": "3",
+          "version_removed": null
+        }
+      ]
+    }
+  },
+  "subtrees": {
+    "features.widget": {
+      "support": {
+        "demo": [
+          {
+            "version_added": "1",
+            "version_removed": "2"
+          },
+          {
+            "version_added": "3",
+            "version_removed": null
+          }
+        ]
+      },
+      "child": {
+        "support": {
+          "demo": [
+            {
+              "version_added": null,
+              "version_removed": null
+            }
+          ]
+        }
+      }
+    }
+  }
+}

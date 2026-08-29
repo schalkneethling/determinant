@@ -1,0 +1,8 @@
+{
+  "sourceFile": "sample-source.json",
+  "versionPath": "__meta.version",
+  "expectedVersion": "3.2.1",
+  "fragmentPaths": ["features.widget.support"],
+  "subtreePaths": ["features.widget"],
+  "outputFile": "golden-fixtures.json"
+}

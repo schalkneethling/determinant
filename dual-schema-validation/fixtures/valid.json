@@ -1,0 +1,13 @@
+{
+  "items": [
+    {
+      "id": "alpha"
+    },
+    {
+      "id": "beta"
+    }
+  ],
+  "summary": {
+    "total": 2
+  }
+}
