@@ -1,0 +1,35 @@
+{
+  "packageName": "@example/contracts",
+  "runtimeExports": [
+    {
+      "subpath": ".",
+      "names": ["contractVersion", "parseContract"]
+    },
+    {
+      "subpath": "./fixtures",
+      "names": ["goldenFixture"]
+    }
+  ],
+  "jsonExports": [
+    {
+      "subpath": "./schema",
+      "property": "$schema",
+      "equals": "https://json-schema.org/draft/2020-12/schema"
+    }
+  ],
+  "typeImports": [
+    {
+      "subpath": ".",
+      "names": ["Contract"]
+    }
+  ],
+  "textFiles": [
+    {
+      "path": "dist/index.d.ts",
+      "mustContain": ["export"],
+      "mustNotContain": ["../src/", ".ts\""]
+    }
+  ],
+  "linkedDependencies": ["zod"],
+  "typescriptCompiler": "node_modules/typescript/bin/tsc"
+}
