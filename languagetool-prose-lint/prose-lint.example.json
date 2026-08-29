@@ -1,0 +1,40 @@
+{
+  "_comment": "Copy to your repo root as .prose-lint.json and calibrate on your corpus. Every disable below was earned on a real corpus — start from it, but re-justify each entry for yours. Keep spelling ON; grow allowedWords instead.",
+  "language": "en-US",
+  "languagetoolVersion": "6.8",
+  "_rationale": "Disabled rules are markdown-corpus noise classes, not prose defects: layout/whitespace artifacts (WHITESPACE_RULE, SENTENCE_WHITESPACE, COMMA_PARENTHESIS_WHITESPACE, SPACE_BEFORE_PARENTHESIS), fragment-heavy list/table prose (UPPERCASE_SENTENCE_START, EN_UNPAIRED_QUOTES, EN_UNPAIRED_BRACKETS), style advice deliberately ignored (COMMA_COMPOUND_SENTENCE, COMMA_COMPOUND_SENTENCE_2), established technical vocabulary (ID_CASING for 'run id', FILE_EXTENSIONS_CASE for lowercase html/css/js, A_INFINITIVE for 'an install'/'a write'), logical quoting (QUOTATION_MARKS_COMMA), and agreement heuristics that only false-positive on telegraphic technical prose.",
+  "disabledRules": [
+    "WHITESPACE_RULE",
+    "SENTENCE_WHITESPACE",
+    "COMMA_PARENTHESIS_WHITESPACE",
+    "SPACE_BEFORE_PARENTHESIS",
+    "UPPERCASE_SENTENCE_START",
+    "EN_UNPAIRED_QUOTES",
+    "EN_UNPAIRED_BRACKETS",
+    "COMMA_COMPOUND_SENTENCE",
+    "COMMA_COMPOUND_SENTENCE_2",
+    "ID_CASING",
+    "FILE_EXTENSIONS_CASE",
+    "A_INFINITIVE",
+    "QUOTATION_MARKS_COMMA",
+    "EN_SPLIT_WORDS_HYPHEN",
+    "MASS_AGREEMENT",
+    "PLURAL_THAT_AGREEMENT",
+    "POSSESSIVE_APOSTROPHE",
+    "DOUBLE_NEGATIVE"
+  ],
+  "disabledCategories": ["STYLE", "REDUNDANCY", "PLAIN_ENGLISH", "CREATIVE_WRITING", "TEXT_ANALYSIS"],
+  "disabledRulePrefixes": ["EN_DIACRITICS_REPLACE"],
+  "allowedWords": [
+    "combobox",
+    "comboboxes",
+    "denylist",
+    "fieldset",
+    "keydown",
+    "listbox",
+    "lockfile",
+    "lockfiles",
+    "npm",
+    "tabindex"
+  ]
+}

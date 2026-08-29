@@ -1,0 +1,29 @@
+{
+  // Copy to your repo root as .markdownlint-cli2.jsonc and adjust the
+  // ignores/disables to your corpus. Every deviation from defaults
+  // should carry a comment saying WHY — the config is a reviewable
+  // record of the calibration, not just switches.
+  //
+  // Scope principle: lint everything a human authors; exclude what a
+  // machine generates (linting generated text fights the generator —
+  // lint its inputs instead) and what you received from elsewhere and
+  // preserve verbatim (historical/spec documents).
+  "globs": ["**/*.md"],
+  "ignores": [
+    "**/node_modules/**"
+    // e.g. "tasks/**/build/**" — generated output
+    // e.g. "plans/handoff.md"  — received document, preserved as-is
+  ],
+  "config": {
+    "default": true,
+    // Prose documents; long pointer/table lines are routine. Length is
+    // not a consistency property, and hard-wrapping evidence lines makes
+    // them harder to grep, not easier to read.
+    "MD013": false,
+    // Allow inline HTML when documents quote markup deliberately.
+    "MD033": false,
+    // When files share a fixed template, identical section headings
+    // recur by design across sibling levels.
+    "MD024": { "siblings_only": true }
+  }
+}
