@@ -21,9 +21,11 @@ node pinned-source-golden-fixtures/extract-fixtures.mjs --check
 node --test pinned-source-golden-fixtures/fixture-invariants.test.mjs
 ```
 
-In a real project, point `sourceFile` at a file under `node_modules`, pin that
-package exactly in the lockfile, and replace the sample paths and assertions
-with cases meaningful to the domain.
+`extract-fixtures.mjs` resolves `sourceFile` relative to this example directory.
+In a real project, a dependency installed in the repository root therefore
+needs a path such as `../node_modules/package/data.json`. Pin that package
+exactly in the lockfile, then replace the sample paths and assertions with
+cases meaningful to the domain.
 
 ## The goal
 
@@ -44,15 +46,12 @@ assertions makes provenance and intent executable.
 - Large realistic subtrees can be retained without hand-copy errors.
 - Tests document why each fixture exists, not merely what bytes it contains.
 
-## Real problems caught
+## Problems this example catches
 
-The `bcd-embed` fixtures pin Browser Compatibility Data 8.0.13 and verify
-source fragments directly against the installed package. Targeted invariants
-protect add/remove/re-add histories, approximate versions, absent versus
-explicitly unknown targets, nested depth, and five support states. A review
-found that summary selection could choose a lower-precedence prefixed or
-partial statement over canonical support; a competing-branches fixture and
-semantic assertion now guard that behavior.
+The checked-in sample pins source version 3.2.1. Its assertions prove that the
+demo support history contains a removal followed by a re-add, and that the
+child entry preserves explicit `null` values. Changing the version, removing
+the re-add, or silently dropping those nulls makes the example fail.
 
 ## Honest limitations
 

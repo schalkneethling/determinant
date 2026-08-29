@@ -14,11 +14,6 @@ const { values, positionals } = parseArgs({
 });
 
 const usage = "Usage: node validate.mjs <fixture.json>";
-if (values.help) {
-  console.log(usage);
-  process.exit(0);
-}
-if (positionals.length !== 1) throw new Error(usage);
 
 const itemSchema = z.strictObject({ id: z.string().min(1) });
 const responseSchema = z
@@ -38,20 +33,30 @@ const ajv = new Ajv2020({ strict: true, allErrors: true });
 addFormats(ajv);
 const validateJsonSchema = ajv.compile(jsonSchema);
 
-const value = JSON.parse(await readFile(positionals[0], "utf8"));
-const zodResult = responseSchema.safeParse(value);
-const jsonSchemaValid = validateJsonSchema(value);
-
-console.log(`${zodResult.success ? "PASS" : "FAIL"} canonical Zod schema`);
-if (!zodResult.success) {
-  for (const issue of zodResult.error.issues) {
-    console.log(`  /${issue.path.map(String).join("/")}: ${issue.message}`);
+const main = async () => {
+  if (values.help) {
+    console.log(usage);
+    return;
   }
-}
+  if (positionals.length !== 1) throw new Error(usage);
 
-console.log(`${jsonSchemaValid ? "PASS" : "FAIL"} published JSON Schema`);
-for (const error of validateJsonSchema.errors ?? []) {
-  console.log(`  ${error.instancePath || "/"}: ${error.message}`);
-}
+  const value = JSON.parse(await readFile(positionals[0], "utf8"));
+  const zodResult = responseSchema.safeParse(value);
+  const jsonSchemaValid = validateJsonSchema(value);
 
-process.exit(zodResult.success && jsonSchemaValid ? 0 : 1);
+  console.log(`${zodResult.success ? "PASS" : "FAIL"} canonical Zod schema`);
+  if (!zodResult.success) {
+    for (const issue of zodResult.error.issues) {
+      console.log(`  /${issue.path.map(String).join("/")}: ${issue.message}`);
+    }
+  }
+
+  console.log(`${jsonSchemaValid ? "PASS" : "FAIL"} published JSON Schema`);
+  for (const error of validateJsonSchema.errors ?? []) {
+    console.log(`  ${error.instancePath || "/"}: ${error.message}`);
+  }
+
+  process.exitCode = zodResult.success && jsonSchemaValid ? 0 : 1;
+};
+
+await main();

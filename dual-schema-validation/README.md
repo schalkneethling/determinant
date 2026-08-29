@@ -6,10 +6,11 @@ independently consumable JSON Schema.
 ## What it is
 
 The complete example uses Zod for the canonical application contract and Ajv
-for the published JSON Schema. Install the pinned dependencies shown in
-`package.example.json`, then run:
+for the published JSON Schema. From a clean checkout, install its locked
+dependencies and then run the fixtures from the repository root:
 
 ```sh
+npm ci --prefix dual-schema-validation
 node dual-schema-validation/validate.mjs dual-schema-validation/fixtures/valid.json
 node dual-schema-validation/validate.mjs dual-schema-validation/fixtures/invalid-structural.json
 node dual-schema-validation/validate.mjs dual-schema-validation/fixtures/invalid-relational.json

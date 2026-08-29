@@ -15,16 +15,24 @@ const definitions = [
     "catalog.json",
     {
       schemaVersion: source.schemaVersion,
-      entries: source.entries.toSorted((left, right) => left.id.localeCompare(right.id)),
+      entries: source.entries.toSorted((left, right) =>
+        left.id < right.id ? -1 : left.id > right.id ? 1 : 0,
+      ),
     },
   ],
 ];
 const expectedFiles = definitions.map(([filename]) => filename).sort();
 
-await mkdir(outputDirectory, { recursive: true });
-const actualFiles = (await readdir(outputDirectory))
-  .filter((filename) => filename.endsWith(".json"))
-  .sort();
+let actualFiles = [];
+try {
+  actualFiles = (await readdir(outputDirectory))
+    .filter((filename) => filename.endsWith(".json"))
+    .sort();
+} catch (error) {
+  if (!(error instanceof Error) || !("code" in error) || error.code !== "ENOENT") {
+    throw error;
+  }
+}
 
 if (check) {
   if (JSON.stringify(actualFiles) !== JSON.stringify(expectedFiles)) {
@@ -33,6 +41,7 @@ if (check) {
     );
   }
 } else {
+  await mkdir(outputDirectory, { recursive: true });
   await Promise.all(
     actualFiles
       .filter((filename) => !expectedFiles.includes(filename))
