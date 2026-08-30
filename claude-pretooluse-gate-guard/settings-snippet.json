@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sh .claude/hooks/gate-guard.sh",
+            "command": "sh \"${CLAUDE_PROJECT_DIR}/.claude/hooks/gate-guard.sh\"",
             "timeout": 10,
             "statusMessage": "Checking gate/commit chaining rule"
           }

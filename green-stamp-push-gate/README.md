@@ -13,6 +13,9 @@ Two small POSIX shell scripts:
   untracked-unignored files, i.e. the content the gate actually
   tested — through a *temporary* git index (your real index is never
   touched) and appends the tree hash to `.git/green-tree-stamps`.
+  Supports `--hash-only` (print the tree, stamp nothing) so the gate
+  can capture the tree it *starts* on and pass it back at stamp time;
+  the stamp is then refused if content changed while the gate ran.
 - `pre-push` — a repo-committed hook (via
   `git config core.hooksPath githooks`) that resolves each pushed tip's
   tree and refuses the push unless that exact tree hash is stamped.
@@ -70,6 +73,15 @@ reaching the remote.
   clone must run the gate once before its first push. That is a
   feature — "this machine validated this tree" — but it surprises on
   machine number two.
+- The stamp covers untracked-unignored files deliberately (they can
+  change gate outcomes), so it fails **closed**: an untracked file left
+  out of the commit makes the stamped tree differ from the commit tree
+  and the push is refused until the file is committed or ignored. A
+  tracked-only stamp would instead certify commit-shaped content the
+  gate never tested in that form.
+- Content edited *while* the gate runs is stamped without having fully
+  passed it — unless you use the `--hash-only` capture-and-compare
+  pattern above, which closes that window.
 - Merges made in a forge's web UI never pass through the hook.
 - The stamp says the gate *ran and passed* on that tree; it says
   nothing about what the gate checks.

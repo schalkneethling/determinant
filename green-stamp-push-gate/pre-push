@@ -25,9 +25,13 @@ fail() {
   exit 1
 }
 
-zero=0000000000000000000000000000000000000000
 while read -r _local_ref local_sha _remote_ref _remote_sha; do
-  [ "$local_sha" = "$zero" ] && continue   # branch deletion
+  # Branch deletion: local sha is all zeros. Match by shape rather than
+  # a fixed 40-char literal so SHA-256 repos (64-char object IDs) work.
+  case "$local_sha" in
+    *[!0]*) ;;                             # contains a non-zero: real tip
+    *) continue ;;                         # all zeros: deletion, skip
+  esac
   tree=$(git rev-parse "$local_sha^{tree}") || fail "cannot resolve pushed commit" "$local_sha"
   if [ ! -f "$stamp_file" ] || ! grep -q "^$tree$" "$stamp_file"; then
     fail "no gate stamp for pushed tip $local_sha" "$tree"

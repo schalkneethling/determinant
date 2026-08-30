@@ -53,11 +53,18 @@ gate-alone runs pass.
   loaded; a human terminal, another tool, or a session started before
   `.claude/` existed (the settings watcher only picks up directories
   present at session start — reload via `/hooks`) all bypass it. The
-  deterministic layer is `../green-stamp-push-gate/`, which binds at
-  `git push` for every actor.
-- Substring matching: a command that merely *mentions* both strings
-  (e.g. echoing documentation text) is denied — a priced-in false
-  positive; rephrase or split the command.
+  deterministic layer is `../green-stamp-push-gate/`, whose local
+  `pre-push` hook binds every actor's *normal* pushes — but a pre-push
+  hook is skipped by `git push --no-verify`, so an invariant that must
+  survive local-hook bypass additionally needs server-side (CI or
+  branch-protection) enforcement.
+- Pattern matching is deliberately loose: a command that runs the gate
+  and merely *mentions* a `git commit`/`git push` invocation (e.g.
+  echoing documentation text) is denied — a priced-in false positive;
+  rephrase or split the command. The git-invocation regex does parse
+  past global options (`git -C <path> commit`, `git --git-dir=<d>
+  push`) and repeated whitespace; see `test-gate-guard.sh` for the
+  covered shapes.
 - An agent could still split gate and commit into two commands and
   ignore the gate's result between them; the push gate is what makes
   that unprofitable.
