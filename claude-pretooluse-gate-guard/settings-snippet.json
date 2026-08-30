@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${CLAUDE_PROJECT_DIR}/.claude/hooks/gate-guard.sh\"",
+            "timeout": 10,
+            "statusMessage": "Checking gate/commit chaining rule"
+          }
+        ]
+      }
+    ]
+  }
+}

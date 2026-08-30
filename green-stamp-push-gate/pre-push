@@ -1,0 +1,40 @@
+#!/bin/sh
+# Push gate: a tree may be pushed only if EXACTLY that tree passed the
+# quality gate (see stamp-green-tree.sh). Deterministic and
+# actor-agnostic: it binds humans, agents, and scripts equally, and
+# cannot be bypassed by chaining a commit after a failed (or skipped)
+# gate run — a red gate stamps nothing, so the commit's tree has no
+# stamp by construction.
+#
+# Install: copy into a repo-committed hooks dir (e.g. githooks/) and
+#   git config core.hooksPath githooks
+# (have the gate itself set this on success, so running the gate once
+# on a fresh clone installs the hook).
+
+GATE_HINT="your gate command (e.g. 'npm run gate')"
+
+stamp_file="$(git rev-parse --git-dir)/green-tree-stamps"
+
+fail() {
+  echo "pre-push REFUSED: $1" >&2
+  echo "  Tree $2 has not passed the gate." >&2
+  echo "  Run $GATE_HINT with this state checked out, let it pass, then" >&2
+  echo "  push. (The gate stamps the exact tree it validated; a commit" >&2
+  echo "  made after a failed or skipped gate run has no stamp by" >&2
+  echo "  construction.)" >&2
+  exit 1
+}
+
+while read -r _local_ref local_sha _remote_ref _remote_sha; do
+  # Branch deletion: local sha is all zeros. Match by shape rather than
+  # a fixed 40-char literal so SHA-256 repos (64-char object IDs) work.
+  case "$local_sha" in
+    *[!0]*) ;;                             # contains a non-zero: real tip
+    *) continue ;;                         # all zeros: deletion, skip
+  esac
+  tree=$(git rev-parse "$local_sha^{tree}") || fail "cannot resolve pushed commit" "$local_sha"
+  if [ ! -f "$stamp_file" ] || ! grep -q "^$tree$" "$stamp_file"; then
+    fail "no gate stamp for pushed tip $local_sha" "$tree"
+  fi
+done
+exit 0

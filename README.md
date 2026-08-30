@@ -27,3 +27,5 @@ files plus a short `README.md` that states:
 | [`package-tarball-smoke-test/`](package-tarball-smoke-test/)         | Runtime, asset, export-map, and TypeScript checks against the package users actually receive              |
 | [`pinned-source-golden-fixtures/`](pinned-source-golden-fixtures/)   | Reproducible fixture extraction plus semantic assertions for important edge cases                         |
 | [`dual-schema-validation/`](dual-schema-validation/)                 | Agreement between a canonical runtime schema and independently consumable JSON Schema                     |
+| [`green-stamp-push-gate/`](green-stamp-push-gate/)                   | Only trees that passed the quality gate can be pushed — gate stamps the exact tree, pre-push hook enforces |
+| [`claude-pretooluse-gate-guard/`](claude-pretooluse-gate-guard/)     | Denies AI-agent commands that chain a gate run with git commit/push, before a bad commit exists           |
