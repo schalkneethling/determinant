@@ -29,3 +29,7 @@ files plus a short `README.md` that states:
 | [`dual-schema-validation/`](dual-schema-validation/)                 | Agreement between a canonical runtime schema and independently consumable JSON Schema                     |
 | [`green-stamp-push-gate/`](green-stamp-push-gate/)                   | Only trees that passed the quality gate can be pushed — gate stamps the exact tree, pre-push hook enforces |
 | [`claude-pretooluse-gate-guard/`](claude-pretooluse-gate-guard/)     | Denies AI-agent commands that chain a gate run with git commit/push, before a bad commit exists           |
+| [`agent-red-test-verification/`](agent-red-test-verification/)       | RED evidence for TDD: the gate fails if the supposedly-failing test passes, tied to a stable criterion ID |
+| [`acceptance-traceability-check/`](acceptance-traceability-check/)   | Every acceptance criterion appears exactly once in its traceability table, with repo-unique IDs           |
+| [`deterministic-guardrail-utils/`](deterministic-guardrail-utils/)   | The guardrail substrate: bounded reads, sorted walks, `--root` testability, collect-all error reporting   |
+| [`pinned-spec-reference-check/`](pinned-spec-reference-check/)       | Spec anchors resolve and semantics stay pinned to a reviewed snapshot; drift notifies, never auto-updates |
