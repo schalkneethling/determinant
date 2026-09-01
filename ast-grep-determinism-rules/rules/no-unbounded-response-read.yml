@@ -10,4 +10,4 @@ rule:
     - pattern: $RES.arrayBuffer()
 constraints:
   RES:
-    regex: ^(response|res|resp)$
+    regex: (?i)(response|resp|res)$

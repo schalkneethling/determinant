@@ -24,7 +24,8 @@ Three rules, each verified against the real ast-grep parser:
   derived hashes on different machines. The fix is a plain code-unit
   comparison: `(left < right ? -1 : left > right ? 1 : 0)`.
 - **`no-unbounded-response-read`** — flags `.text()`, `.json()`, and
-  `.arrayBuffer()` on receivers named `response`/`res`/`resp`. Checking
+  `.arrayBuffer()` on receivers whose name ends in `response`/`res`/`resp`
+  (case-insensitive), so `createResponse` and `contentResponse` are covered. Checking
   `Buffer.byteLength` *after* one of these calls makes the size limit
   advisory: the whole body is already in memory. The fix streams
   `response.body` with a reader, counts bytes as chunks arrive, and cancels
@@ -76,8 +77,8 @@ over those entries — the fixture is the regression, preserved.
 ## Honest limitations
 
 Structural matching is syntactic, not semantic. `no-unbounded-response-read`
-relies on a receiver-naming convention (`response`/`res`/`resp`) and misses a
-response bound to another name, while `no-locale-sensitive-sort` flags every
+relies on a receiver-naming suffix convention (`…response`/`…res`/`…resp`,
+case-insensitive) and misses a response bound to an unrelated name, while `no-locale-sensitive-sort` flags every
 `localeCompare`, including legitimate user-facing collation — review its
 findings rather than blanket-suppressing them. The pinned CLI is fetched
 through `npx`, so the first run needs the network (or a warm npm cache);
