@@ -8,6 +8,10 @@ A consumer-level smoke test that validates the tarball produced by
 `package-smoke-test.mjs` packs a package into a temporary directory,
 extracts it beneath a fresh `node_modules`, and then checks:
 
+- packed-manifest hygiene: no dependency survives with an unpublishable
+  protocol (`workspace:`, `link:`, `portal:`, `file:`), no dependency named in
+  `forbiddenDependencies` (for private workspace packages that must never be
+  required by a published one), and the declared `main` entry exists;
 - named JavaScript exports from the package root and subpaths;
 - JSON or other CommonJS-loadable asset subpaths and identifying fields;
 - public TypeScript type exports with the project's real compiler;
@@ -25,6 +29,13 @@ node path/to/package-smoke-test.mjs --package-root .
 The script also accepts `--config path/to/config.json`. Temporary files are
 removed even when a check fails.
 
+With `--consume`, the script additionally builds a throwaway consumer project
+that installs the tarball with a real `npm install --ignore-scripts` (plus any
+`consumeDependencies` from the config), re-runs the runtime export smoke from
+the installed layout, and executes each configured `bins` entry from
+`node_modules/.bin` — proving the package installs, resolves, and its CLI
+runs, exactly as a registry consumer would experience it.
+
 ## The goal
 
 Monorepo tests normally import source files or workspace links. Those paths
@@ -40,6 +51,12 @@ workspace source resolution.
 - Type declarations are checked from the packed layout, not the source tree.
 - Generated JSON, WASM, CSS, or other package assets can be asserted directly.
 - Accidental reliance on undeclared workspace dependencies becomes visible.
+- A `workspace:*` range that the package manager failed to rewrite at pack
+  time — instantly broken for every registry consumer — fails before publish.
+- A published package cannot quietly depend on a private, unpublished
+  workspace sibling.
+- With `--consume`, install-time behavior and bin wiring are exercised, not
+  just module resolution.
 
 ## Real problems caught
 
@@ -51,6 +68,14 @@ green because it could resolve the TypeScript source directly. A
 `mustNotContain` declaration assertion now makes that boundary error an
 executable check.
 
+The manifest-hygiene and consume checks are distilled from
+`css-property-type-validator`, where a release-boundary gate packs three
+public packages and rejects any surviving `workspace:` protocol, any
+dependency on the private runtime packages, and a missing declared `main`,
+then installs the tarballs into a throwaway consumer and runs the CLI's
+`--help` — because a workspace's own tests resolve siblings from source and
+can stay green through all of those failures.
+
 ## Honest limitations
 
 This is a smoke test, not a complete downstream integration suite. It checks
@@ -58,4 +83,8 @@ only the exports named in its config. Add an entry whenever the public surface
 grows. The example uses the system `npm` and `tar` executables and symlinks
 already-installed dependencies into the isolated environment; projects that
 must test installation scripts or another operating system need an additional
-clean-install job.
+clean-install job. The `main` check tests the literal declared path, so an
+extensionless `main` that relies on Node's resolution fallbacks will be
+flagged; declare the full filename. `--consume` needs network access whenever
+`consumeDependencies` names registry packages; with none, the `file:` install
+stays offline.

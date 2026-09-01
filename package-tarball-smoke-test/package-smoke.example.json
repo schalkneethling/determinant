@@ -31,5 +31,13 @@
     }
   ],
   "linkedDependencies": ["zod"],
-  "typescriptCompiler": "node_modules/typescript/bin/tsc"
+  "typescriptCompiler": "node_modules/typescript/bin/tsc",
+  "forbiddenDependencies": ["@example/contracts-internal"],
+  "consumeDependencies": {},
+  "bins": [
+    {
+      "name": "contracts-cli",
+      "args": ["--help"]
+    }
+  ]
 }
