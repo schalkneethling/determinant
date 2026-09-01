@@ -5,6 +5,7 @@ import test from "node:test";
 
 const script = fileURLToPath(new URL("./check-determinism-rules.mjs", import.meta.url));
 const violations = fileURLToPath(new URL("./fixtures/violations.mjs", import.meta.url));
+const typescriptViolations = fileURLToPath(new URL("./fixtures/violations.ts", import.meta.url));
 const clean = fileURLToPath(new URL("./fixtures/clean.mjs", import.meta.url));
 
 function runGate(args) {
@@ -19,6 +20,14 @@ test("every seeded violation is reported", () => {
   assert.match(result.stderr, /violations\.mjs:13 \[no-unbounded-response-read\]/);
   assert.match(result.stderr, /violations\.mjs:17 \[no-unbounded-inline-fetch-read\]/);
   assert.equal(result.stderr.trim().split("\n").length, 4);
+});
+
+test("TypeScript sources are covered by the -ts rule variants", () => {
+  const result = runGate([typescriptViolations]);
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /violations\.ts:2 \[no-locale-sensitive-sort-ts\]/);
+  assert.match(result.stderr, /violations\.ts:7 \[no-unbounded-response-read-ts\]/);
+  assert.equal(result.stderr.trim().split("\n").length, 2);
 });
 
 test("deterministic code passes clean", () => {

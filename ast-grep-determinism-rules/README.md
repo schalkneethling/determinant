@@ -36,6 +36,11 @@ Three rules, each verified against the real ast-grep parser:
   `constraints:` block suppresses `any:` alternatives that never bind the
   constrained metavariable — a behavior worth knowing when composing rules.)
 
+Each rule exists in a `javascript` and a `-ts` `typescript` variant: an
+ast-grep rule declares exactly one language, and a JavaScript rule **silently
+skips `.ts` files** — a gap first noticed when a TypeScript scan passed while
+nine known violations existed. Both variants share the same patterns.
+
 The gate script pins the CLI (`@ast-grep/cli@0.45.3`) and invokes it via
 `npx --yes --package`, so the scan itself is reproducible; zero targets is a
 usage error, not a pass.
