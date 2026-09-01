@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { mkdir, mkdtemp, readFile, rename, rm, symlink, writeFile } from "node:fs/promises";
+import { access, mkdir, mkdtemp, readFile, rename, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, isAbsolute, join, resolve } from "node:path";
 import { parseArgs } from "node:util";
@@ -8,14 +8,17 @@ const { values } = parseArgs({
   options: {
     config: { type: "string" },
     "package-root": { type: "string" },
+    consume: { type: "boolean" },
     help: { type: "boolean", short: "h" },
   },
   strict: true,
 });
 
-const usage = `Usage: node package-smoke-test.mjs --package-root <path> [--config <path>]
+const usage = `Usage: node package-smoke-test.mjs --package-root <path> [--config <path>] [--consume]
 
-The default config is <package-root>/.package-smoke.json.`;
+The default config is <package-root>/.package-smoke.json.
+--consume additionally installs the tarball into a throwaway consumer project
+with npm and runs the runtime smoke and any configured bins from there.`;
 
 if (values.help) {
   console.log(usage);
@@ -59,6 +62,32 @@ try {
   await mkdir(dirname(extractedPackage), { recursive: true });
   await rename(join(temporaryDirectory, "package"), extractedPackage);
 
+  const packedManifest = JSON.parse(await readFile(join(extractedPackage, "package.json"), "utf8"));
+  const declaredDependencies = {
+    ...packedManifest.dependencies,
+    ...packedManifest.optionalDependencies,
+    ...packedManifest.peerDependencies,
+  };
+  for (const [name, range] of Object.entries(declaredDependencies)) {
+    if (/^(?:workspace|link|portal|file):/u.test(String(range))) {
+      throw new Error(
+        `Packed manifest depends on ${name} through unpublishable protocol ${JSON.stringify(range)}.`,
+      );
+    }
+    if ((config.forbiddenDependencies ?? []).includes(name)) {
+      throw new Error(`Packed manifest depends on forbidden package ${name}.`);
+    }
+  }
+  if (packedManifest.main) {
+    const mainExists = await access(join(extractedPackage, packedManifest.main)).then(
+      () => true,
+      () => false,
+    );
+    if (!mainExists) {
+      throw new Error(`Packed package is missing its declared main entry ${packedManifest.main}.`);
+    }
+  }
+
   for (const definition of config.textFiles ?? []) {
     const contents = await readFile(join(extractedPackage, definition.path), "utf8");
     for (const expected of definition.mustContain ?? []) {
@@ -81,9 +110,7 @@ try {
   }
 
   const runtimeSmoke = join(temporaryDirectory, "smoke.mjs");
-  await writeFile(
-    runtimeSmoke,
-    `import { createRequire } from "node:module";
+  const runtimeSmokeSource = `import { createRequire } from "node:module";
 const runtimeExports = ${JSON.stringify(config.runtimeExports ?? [])};
 const jsonExports = ${JSON.stringify(config.jsonExports ?? [])};
 const packageName = ${JSON.stringify(config.packageName)};
@@ -101,8 +128,8 @@ for (const definition of jsonExports) {
     throw new Error(\`Unexpected \${definition.property} from \${definition.subpath}\`);
   }
 }
-`,
-  );
+`;
+  await writeFile(runtimeSmoke, runtimeSmokeSource);
   const runtime = spawnSync(process.execPath, [runtimeSmoke], {
     cwd: temporaryDirectory,
     encoding: "utf8",
@@ -141,7 +168,52 @@ for (const definition of jsonExports) {
   );
   if (types.status !== 0) throw new Error(types.stderr || types.stdout);
 
-  console.log(`Package smoke test passed for ${config.packageName}.`);
+  if (values.consume) {
+    const consumer = join(temporaryDirectory, "consumer");
+    await mkdir(consumer, { recursive: true });
+    await writeFile(
+      join(consumer, "package.json"),
+      `${JSON.stringify(
+        {
+          private: true,
+          type: "module",
+          dependencies: {
+            [config.packageName]: `file:${join(temporaryDirectory, tarball)}`,
+            ...(config.consumeDependencies ?? {}),
+          },
+        },
+        null,
+        2,
+      )}\n`,
+    );
+    const installed = spawnSync(
+      "npm",
+      ["install", "--ignore-scripts", "--no-package-lock", "--no-audit", "--no-fund"],
+      { cwd: consumer, encoding: "utf8" },
+    );
+    if (installed.status !== 0) throw new Error(installed.stderr || installed.stdout);
+
+    await writeFile(join(consumer, "smoke.mjs"), runtimeSmokeSource);
+    const consumed = spawnSync(process.execPath, [join(consumer, "smoke.mjs")], {
+      cwd: consumer,
+      encoding: "utf8",
+      env: process.env,
+    });
+    if (consumed.status !== 0) throw new Error(consumed.stderr || consumed.stdout);
+
+    for (const bin of config.bins ?? []) {
+      const executed = spawnSync(join(consumer, "node_modules", ".bin", bin.name), bin.args ?? [], {
+        cwd: consumer,
+        encoding: "utf8",
+      });
+      if (executed.error) throw executed.error;
+      if (executed.status !== 0) throw new Error(executed.stderr || executed.stdout);
+    }
+  }
+
+  console.log(
+    `Package smoke test passed for ${config.packageName}${values.consume ? " (including npm consumer install)" : ""}.`,
+  );
 } finally {
   await rm(temporaryDirectory, { recursive: true, force: true });
 }
