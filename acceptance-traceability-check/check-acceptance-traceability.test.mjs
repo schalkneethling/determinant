@@ -60,6 +60,29 @@ test("a criterion absent from the traceability table fails", async () => {
   }
 });
 
+test("a traceability row referencing an undeclared criterion fails", async () => {
+  const root = await writeAcceptanceDocument(
+    [
+      "## AC-DEMO-001 First",
+      "",
+      "## Traceability",
+      "",
+      "| Criterion/scenario | Implementation |",
+      "| ------------------ | -------------- |",
+      "| AC-DEMO-001        | `src/a.mjs`    |",
+      "| AC-DEMO-009        | `src/gone.mjs` |",
+      "",
+    ].join("\n"),
+  );
+  try {
+    const result = runCheck(root);
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /references undeclared criterion AC-DEMO-009/);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
 test("a criterion duplicated in the traceability table fails", async () => {
   const root = await writeAcceptanceDocument(
     [

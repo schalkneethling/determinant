@@ -20,9 +20,20 @@ const response = await fetch(pin.livingUrl, {
 });
 if (!response.ok)
   throw new Error(`Unable to inspect the official specification: ${response.status}`);
-const text = await response.text();
-if (Buffer.byteLength(text) > 8 * 1024 * 1024)
-  throw new Error("Official specification response exceeded 8 MiB.");
+const reader = response.body.getReader();
+const chunks = [];
+let total = 0;
+for (;;) {
+  const { done, value } = await reader.read();
+  if (done) break;
+  total += value.byteLength;
+  if (total > 8 * 1024 * 1024) {
+    await reader.cancel();
+    throw new Error("Official specification response exceeded 8 MiB.");
+  }
+  chunks.push(value);
+}
+const text = Buffer.concat(chunks).toString("utf8");
 
 if (!text.includes(pin.approvedPublication) && !text.includes(pin.approvedSnapshot)) {
   console.error(

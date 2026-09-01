@@ -14,10 +14,12 @@ touching `node:fs` directly, so the safety discipline is uniform:
   anything over the limit, read, then **re-check the byte length after the
   read**. The re-check closes the window in which a file grows (or is swapped)
   between the size check and the read.
-- `listFiles(root, predicate)` — recursive walk with entries sorted by
-  `localeCompare` at every level, so the file order (and therefore the error
-  order, hash order, and diff order of anything built on it) is identical on
-  every machine. A missing root returns an empty list instead of throwing.
+- `listFiles(root, predicate)` — recursive walk with entries sorted by plain
+  code-unit comparison at every level (never `localeCompare`, whose order can
+  vary with the host's locale and ICU data), so the file order — and therefore
+  the error order, hash order, and diff order of anything built on it — is
+  identical on every machine. A missing root returns an empty list instead of
+  throwing.
 - `parseRootArgument(argv)` — every guardrail accepts `--root <dir>`, which
   means every guardrail can be pointed at a fixture tree and tested like any
   other program, instead of only ever running against the real repository.
@@ -43,9 +45,10 @@ more disciplined than the code they police. Three properties matter:
 1. **Bounded input.** A gate that calls `readFile` on whatever it finds can be
    wedged by a giant or non-regular file. Checking size before *and* after the
    read makes the bound real, not advisory.
-2. **Deterministic traversal.** `readdir` order is platform-dependent. Sorting
-   at every level makes output, error messages, and derived hashes
-   byte-identical across machines and CI.
+2. **Deterministic traversal.** `readdir` order is platform-dependent, and
+   `localeCompare` order is environment-dependent. Sorting by code units at
+   every level makes output, error messages, and derived hashes byte-identical
+   across machines and CI.
 3. **Testability.** `--root` turns "a script that inspects this repo" into "a
    program with an input", which is the difference between guardrails you can
    test and guardrails you have to trust.

@@ -15,6 +15,11 @@ async function createFixture({ guardrail } = {}) {
     await copyFile(join(here, script), join(root, script));
   }
   await copyFile(join(here, "lib", "agent-lifecycle.mjs"), join(root, "lib", "agent-lifecycle.mjs"));
+  await mkdir(join(root, "docs", "acceptance"), { recursive: true });
+  await writeFile(
+    join(root, "docs", "acceptance", "search.md"),
+    "## AC-SEARCH-001 Fixture criterion\n\n## Traceability\n\n| Criterion/scenario | Implementation |\n| --- | --- |\n| AC-SEARCH-001 | pending |\n",
+  );
   if (guardrail === "passing") {
     await writeFile(join(root, "check-fixture.mjs"), "process.exitCode = 0;\n");
   } else if (guardrail === "failing") {
@@ -27,11 +32,15 @@ async function createFixture({ guardrail } = {}) {
 }
 
 function runScript(root, script, args = []) {
-  return spawnSync(process.execPath, [join(root, script), ...args], { encoding: "utf8" });
+  return spawnSync(process.execPath, [join(root, script), ...args], {
+    cwd: root,
+    encoding: "utf8",
+  });
 }
 
 const failingTest = ["node", "--eval", "process.exit(1)"];
 const passingTest = ["node", "--eval", "process.exit(0)"];
+const crashingTest = ["node", "--eval", 'process.kill(process.pid, "SIGKILL")'];
 
 test("verify-red requires a well-formed criterion", async () => {
   const root = await createFixture({ guardrail: "passing" });
@@ -52,6 +61,40 @@ test("verify-red requires an explicit test command after --", async () => {
     const result = runScript(root, "agent-verify-red.mjs", ["--criterion", "AC-SEARCH-001"]);
     assert.equal(result.status, 2);
     assert.match(result.stderr, /requires one explicit test command after --/);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("an undeclared criterion is rejected before any test command runs", async () => {
+  const root = await createFixture({ guardrail: "passing" });
+  try {
+    const result = runScript(root, "agent-verify-red.mjs", [
+      "--criterion",
+      "AC-UNDEFINED-999",
+      "--",
+      ...failingTest,
+    ]);
+    assert.equal(result.status, 2);
+    assert.match(result.stderr, /AC-UNDEFINED-999 is not declared/);
+    assert.doesNotMatch(result.stdout, /RED evidence captured/);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("a signal-terminated test command is not valid RED evidence", async () => {
+  const root = await createFixture({ guardrail: "passing" });
+  try {
+    const result = runScript(root, "agent-verify-red.mjs", [
+      "--criterion",
+      "AC-SEARCH-001",
+      "--",
+      ...crashingTest,
+    ]);
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /terminated by signal SIGKILL; a crash is not valid RED evidence/);
+    assert.doesNotMatch(result.stdout, /RED evidence captured/);
   } finally {
     await rm(root, { recursive: true, force: true });
   }

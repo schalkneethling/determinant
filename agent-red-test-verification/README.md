@@ -15,15 +15,18 @@ order — finding zero of them is a failure, not a pass):
   guardrail, proving the baseline is green so a later red test cannot be
   confused with pre-existing breakage.
 - **`agent-verify-red.mjs`** — the inverted gate. Requires a stable acceptance
-  criterion ID matching `AC-[A-Z0-9]+-\d+` and one explicit test command after
-  `--`, then runs that command expecting **failure**:
+  criterion ID matching `AC-[A-Z0-9]+-\d+` that is **declared as a heading in
+  `docs/acceptance/*.md`** (an invented criterion like `AC-UNDEFINED-999` is
+  rejected before anything runs), plus one explicit test command after `--`,
+  then runs that command expecting **failure**:
 
   ```sh
   node scripts/agent-verify-red.mjs --criterion AC-SEARCH-001 -- pnpm vitest run search.test.ts
   ```
 
   If the command exits zero, the gate exits 1 with "RED evidence command
-  passed; it did not prove the selected unmet criterion."
+  passed; it did not prove the selected unmet criterion." A command killed by
+  a signal is rejected too — a crash is not valid RED evidence.
 - **`agent-verify-changed.mjs`** — the cheap inner loop after implementing:
   guardrails, then the project's test and typecheck commands (`pnpm test` and
   `pnpm run typecheck` here — adapt these two lines to your repository).

@@ -33,6 +33,23 @@ for (const value of urls) {
   if (fragment) pages.get(key).add(decodeURIComponent(fragment));
 }
 
+async function readBodyBounded(response, limit) {
+  const reader = response.body.getReader();
+  const chunks = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > limit) {
+      await reader.cancel();
+      return null;
+    }
+    chunks.push(value);
+  }
+  return Buffer.concat(chunks).toString("utf8");
+}
+
 const failures = [];
 for (const [page, fragments] of pages) {
   const response = await fetch(page, {
@@ -42,8 +59,8 @@ for (const [page, fragments] of pages) {
     failures.push(`${page}: ${response.status}`);
     continue;
   }
-  const text = await response.text();
-  if (Buffer.byteLength(text) > 8 * 1024 * 1024) {
+  const text = await readBodyBounded(response, 8 * 1024 * 1024);
+  if (text === null) {
     failures.push(`${page}: response exceeded 8 MiB`);
     continue;
   }

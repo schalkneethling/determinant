@@ -57,7 +57,8 @@ export async function listFiles(root, predicate) {
 
   async function walk(directory) {
     const entries = await readdir(directory, { withFileTypes: true });
-    for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name))) {
+    const byCodeUnit = (left, right) => (left.name < right.name ? -1 : left.name > right.name ? 1 : 0);
+    for (const entry of entries.sort(byCodeUnit)) {
       const candidate = resolve(directory, entry.name);
       if (entry.isDirectory()) {
         await walk(candidate);
