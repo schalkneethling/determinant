@@ -40,7 +40,8 @@ async function readTextBounded(filePath) {
 async function listSweptFiles(directory) {
   const files = [];
   const entries = await readdir(directory, { withFileTypes: true });
-  for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name))) {
+  const byCodeUnit = (left, right) => (left.name < right.name ? -1 : left.name > right.name ? 1 : 0);
+  for (const entry of entries.sort(byCodeUnit)) {
     const candidate = resolve(directory, entry.name);
     if (entry.isDirectory()) {
       if (!SKIPPED_DIRECTORIES.has(entry.name)) {
