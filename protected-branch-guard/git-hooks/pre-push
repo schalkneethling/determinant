@@ -1,0 +1,4 @@
+#!/bin/sh
+# Read Git's resolved destination refs, not a guessed shell-command grammar.
+root=$(git rev-parse --show-toplevel) || exit 1
+exec node "$root/protected-branch-guard/guard.mjs" pre-push
