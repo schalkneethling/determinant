@@ -99,9 +99,14 @@ node protected-branch-guard/start-work.mjs issue-123-description --worktree ../i
 
 Use `$start-work issue-123-description` in Codex, or select the skill from
 the skill picker. This is a skill-backed convenience command, not a new
-built-in `/start-work` command. A new worktree does not automatically move
-the existing task there; use the reported absolute directory for subsequent
-work. The original checkout remains unchanged.
+built-in `/start-work` command. The agent reads a supplied slug from the prompt
+and passes it unchanged as the script's first argument; there is no automatic
+argument forwarding. If no slug is supplied, the agent derives one from the
+requested work. The script parses and validates the resulting CLI arguments.
+
+A new worktree does not automatically move the existing task there; use the
+reported absolute directory for subsequent work. The original checkout
+remains unchanged.
 
 The helper refuses tracked or untracked changes, invalid slugs, existing
 branches, a missing local `main`, or a difference between local `main` and
