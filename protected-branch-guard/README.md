@@ -64,7 +64,9 @@ branches do not yet contain the guard files or Codex configuration.
 
 If existing Git hooks or a different `core.hooksPath` are found, the installer
 stops before changing files. Integrate with the existing hook runner manually;
-do not replace it. Its commit hooks can execute `guard.mjs commit`. A combined
+do not replace it. Both `pre-commit` and `prepare-commit-msg` must invoke
+`guard.mjs commit`: `git commit --no-verify` bypasses `pre-commit`, but
+`prepare-commit-msg` still runs. A combined
 pre-push runner must preserve Git's stdin records and replay the same records
 to every guard; chaining readers on one consumed stdin stream is incorrect.
 This matters when combining with [the green-stamp push gate](../green-stamp-push-gate/).
