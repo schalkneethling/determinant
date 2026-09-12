@@ -1,0 +1,20 @@
+{
+  "description": "Protected branch guard: advisory session check and synchronous patch gate.",
+  "hooks": {
+    "SessionStart": [{
+      "hooks": [{
+        "type": "command",
+        "command": "node \"$(git rev-parse --show-toplevel)/protected-branch-guard/guard.mjs\" session-start",
+        "timeout": 10
+      }]
+    }],
+    "PreToolUse": [{
+      "matcher": "^apply_patch$",
+      "hooks": [{
+        "type": "command",
+        "command": "node \"$(git rev-parse --show-toplevel)/protected-branch-guard/guard.mjs\" pre-tool-use",
+        "timeout": 10
+      }]
+    }]
+  }
+}

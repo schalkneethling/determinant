@@ -1,0 +1,4 @@
+#!/bin/sh
+# Branch-only backstop for commit --no-verify, not a replacement for quality checks.
+root=$(git rev-parse --show-toplevel) || exit 1
+exec node "$root/protected-branch-guard/guard.mjs" commit

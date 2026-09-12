@@ -34,3 +34,4 @@ files plus a short `README.md` that states:
 | [`deterministic-guardrail-utils/`](deterministic-guardrail-utils/)   | The guardrail substrate: bounded reads, sorted walks, `--root` testability, collect-all error reporting   |
 | [`pinned-spec-reference-check/`](pinned-spec-reference-check/)       | Spec anchors resolve and semantics stay pinned to a reviewed snapshot; drift notifies, never auto-updates |
 | [`ast-grep-determinism-rules/`](ast-grep-determinism-rules/)         | Recurring review findings compiled into structural gates: no locale-sensitive sorts, no unbounded fetch buffering |
+| [`protected-branch-guard/`](protected-branch-guard/)               | Layered Git/Codex guards against accidental work on main, with a safe feature-branch helper and integration tests |
